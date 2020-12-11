@@ -1,8 +1,12 @@
+# Frozen Jam by tgfcoder <https://twitter.com/tgfcoder> licensed under CC-BY-3
+# Art from Kenney.nl
+
 import pygame
 import random
 from os import path
 
 img_dir = path.join(path.dirname(__file__), "img")
+snd_dir = path.join(path.dirname(__file__), "sound")
 WIDTH = 480
 HEIGHT = 600
 FPS = 60
@@ -21,6 +25,14 @@ pygame.mixer.init()  # inicjalizuje dzwięki
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space")
 clock = pygame.time.Clock()
+
+font_name = pygame.font.match_font("arial")
+def draw_text(surf, text, size, x, y):
+    font = pygame.font.Font(font_name, size)
+    text_surface = font.render(text, True, WHITE)
+    text_rect = text_surface.get_rect()
+    text_rect.midtop = (x,y)
+    surf.blit(text_surface, text_rect)
 
 
 class Player(pygame.sprite.Sprite):
@@ -63,6 +75,7 @@ class Player(pygame.sprite.Sprite):
         bullet = Bullet(self.rect.centerx, self.rect.top)
         all_sprites.add(bullet)
         bullets.add(bullet)
+        shoot_sound.play()
 
 
 class Mob(pygame.sprite.Sprite):
@@ -90,10 +103,11 @@ class Mob(pygame.sprite.Sprite):
             new_image = pygame.transform.rotate(self.image_orig, self.rot)
             old_center = self.rect.center
             self.image = new_image
-            self.rect = self.image.get_rect
+            self.rect = self.image.get_rect()
             self.rect.center = old_center
 
     def update(self):
+        self.rotate()
         self.rect.x += self.speedx
         self.rect.y += self.speedy
         if self.rect.top > HEIGHT + 10 or self.rect.left < -25 or self.rect.right > WIDTH + 25:
@@ -128,6 +142,14 @@ meteor_images = []
 meteor_list = ['meteorBrown_big1.png', 'meteorBrown_big3.png', 'meteorBrown_med1.png', 'meteorBrown_med1.png',
                'meteorBrown_small2.png', 'meteorBrown_small1.png', 'meteorBrown_tiny1.png']
 
+# Dodawanie muzyki
+shoot_sound = pygame.mixer.Sound(path.join(snd_dir, "Laser_Shoot.wav"))
+expl_sounds = []
+for snd in ["Explosion14.wav", "Explosion9.wav"]:
+    expl_sounds.append(pygame.mixer.Sound(path.join(snd_dir, snd)))
+pygame.mixer.music.load(path.join(snd_dir, "tgfcoder-FrozenJam-SeamlessLoop.ogg.crdownload"))
+pygame.mixer.music.set_volume(0.4)
+
 for img in meteor_list:
     meteor_images.append(pygame.image.load(path.join(img_dir, img)).convert())
 
@@ -140,13 +162,16 @@ for i in range(8):
     m = Mob()
     mobs.add(m)
     all_sprites.add(m)
+score = 0
 
+pygame.mixer.music.play(loops=-1)
 # Game loop
 running = True
 
 while running:
     # pierwsze co robimy to ustawiamy jak szybko zasuwa pętla
     clock.tick(FPS)
+
 
     # Procesowanie zewnętrznych komend (events)
     for event in pygame.event.get():
@@ -165,6 +190,8 @@ while running:
     # Sprawdzanie czy pocisk dotknął moba
     hits = pygame.sprite.groupcollide(mobs, bullets, True, True)
     for hit in hits:
+        score += 50 - hit.radius
+        random.choice(expl_sounds).play()
         m = Mob()
         all_sprites.add(m)
         mobs.add(m)
@@ -178,9 +205,10 @@ while running:
     screen.fill(BLACK)
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
+    draw_text(screen, str(score), 18, WIDTH /2, 10)
     # zawsze ostatnie po tym jak wszystko narysujesz
     pygame.display.flip()
 
 pygame.quit()
 
-#          dwa a   dadad  a ddd
+#
