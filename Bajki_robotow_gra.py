@@ -37,10 +37,11 @@ background = pygame.image.load(path.join(img_dir, "hexagonal_background_1080p.pn
 background_rect = background.get_rect()
 bullet_img = pygame.image.load(path.join(img_dir, "laserRed05.png")).convert()
 
-
 # Dodawanie muzyki
 pygame.mixer.music.load(path.join(snd_dir, "CleytonRX - Battle RPG Theme Var.ogg"))
 pygame.mixer.music.set_volume(0.4)
+
+
 # shoot_sound =
 
 def rotate(rot, image):
@@ -56,7 +57,6 @@ def draw_text(surf, text, size, x, y):
     surf.blit(text_surface, text_rect)
 
 
-
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, parent):
         pygame.sprite.Sprite.__init__(self)
@@ -65,7 +65,7 @@ class Bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.bottom = parent.rect.centery
         self.rect.centerx = parent.rect.centerx
-        self.speed = 10
+        self.speed = 25
         self.direction = parent.direction
         if self.direction == LEFT or self.direction == RIGHT:
             self.image = rotate(90, self.image)
@@ -74,13 +74,13 @@ class Bullet(pygame.sprite.Sprite):
             self.rect.bottom = parent.rect.centery
             self.rect.centerx = parent.rect.centerx
         if self.direction == UP:
-            self.rect.bottom = parent.rect.top
+            self.rect.bottom = parent.rect.top - 20
         if self.direction == DOWN:
-            self.rect.bottom = parent.rect.bottom
+            self.rect.bottom = parent.rect.bottom + 60
         if self.direction == RIGHT:
-            self.rect.right = parent.rect.right
+            self.rect.right = parent.rect.right + 60
         if self.direction == LEFT:
-            self.rect.left = parent.rect.left
+            self.rect.left = parent.rect.left - 60
 
     def update(self):
         if self.direction == LEFT:
@@ -98,6 +98,7 @@ class Bullet(pygame.sprite.Sprite):
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, player_klawisze, respawn):
+        self.nazwa = 'test'
         self.player_klawisze1 = player_klawisze
         pygame.sprite.Sprite.__init__(self)
         self.image = player_orig_img
@@ -169,7 +170,6 @@ class Player(pygame.sprite.Sprite):
             if self.rect.top <= 0:
                 self.rect.top = 0
 
-
     def shoot(self):
         now = pygame.time.get_ticks()
         if now - self.last_shoot > self.shoot_delay:
@@ -180,6 +180,29 @@ class Player(pygame.sprite.Sprite):
             self.last_shoot = now
 
 
+class Explosion(pygame.sprite.Sprite):
+    def __init__(self, center, size):
+        pygame.sprite.Sprite.__init__(self)
+        self.size = size
+        self.image = explosion_anim[self.size][0]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.frame = 0
+        self.last_update = pygame.time.get_ticks()
+        self.frame_rate = 50
+
+    def update(self):
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame += 1
+            if self.frame == len(explosion_anim[self.size]):
+                self.kill()
+            else:
+                center = self.rect.center
+                self.image = explosion_anim[self.size][self.frame]
+                self.rect = self.image.get_rect()
+                self.rect.center = center
 
 
 pygame.mixer.music.play(loops=-1)
@@ -187,10 +210,24 @@ pygame.mixer.music.play(loops=-1)
 # Tworzymy grupy, sprite
 all_sprites = pygame.sprite.Group()
 bullets = pygame.sprite.Group()
+players = pygame.sprite.Group()
 player = Player(True, True)
-player1 = Player(False, False)
+player_przeciwnik = Player(False, False)
 all_sprites.add(player)
-all_sprites.add(player1)
+all_sprites.add(player_przeciwnik)
+players.add(player_przeciwnik)
+players.add(player)
+explosion_anim = {}
+explosion_anim["lg"] = []
+explosion_anim["sm"] = []
+for i in range(9):
+    filename = "regularExplosion0{}.png".format(i)
+    img = pygame.image.load(path.join(img_dir, filename)).convert()
+    img.set_colorkey(BLACK)
+    img_lg = pygame.transform.scale(img, (75, 75))
+    explosion_anim["lg"].append(img_lg)
+    img_sm = pygame.transform.scale(img, (32, 32))
+    explosion_anim["sm"].append(img_sm)
 
 running = True
 while running:
@@ -206,5 +243,14 @@ while running:
     screen.blit(background, background_rect)
     all_sprites.draw(screen)
     pygame.display.flip()
+
+    hit_players = pygame.sprite.groupcollide(players, bullets, True, True)
+    for hit_player in hit_players:
+        death_explosion = Explosion(hit_player.rect.center, "lg")
+        all_sprites.add(death_explosion)
+
+    if len(hit_players) > 0 and not death_explosionalive.():
+        print('jestem')
+        running = False
 
 pygame.quit()
