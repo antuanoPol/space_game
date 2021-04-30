@@ -98,9 +98,8 @@ class Bullet(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, player_klawisze, respawn):
-        self.nazwa = 'test'
-        self.player_klawisze1 = player_klawisze
+    def __init__(self, main_player, respawn):
+        self.main_player = main_player
         pygame.sprite.Sprite.__init__(self)
         self.image = player_orig_img
         self.image.set_colorkey(BLACK)
@@ -113,63 +112,56 @@ class Player(pygame.sprite.Sprite):
             self.rect.bottom = 0
         self.last_shoot = pygame.time.get_ticks()
         self.shoot_delay = 350
-        self.direction = UP
+        self.direction = None
 
     def update(self):
+        self.setDirection()
+        self.move()
+        self.direction = None
+
+    def setDirection(self):
+        self.keystate = pygame.key.get_pressed()
+        if self.main_player:
+            if self.keystate[pygame.K_LEFT]:
+                self.direction = LEFT
+            if self.keystate[pygame.K_RIGHT]:
+                self.direction = RIGHT
+            if self.keystate[pygame.K_UP]:
+                self.direction = UP
+            if self.keystate[pygame.K_DOWN]:
+                self.direction = DOWN
+        else:
+            if self.keystate[pygame.K_a]:
+                self.direction = LEFT
+            if self.keystate[pygame.K_d]:
+                self.direction = RIGHT
+            if self.keystate[pygame.K_w]:
+                self.direction = UP
+            if self.keystate[pygame.K_s]:
+                self.direction = DOWN
+
+    def move(self):
         self.speedx = 0
         self.speedy = 0
-        if self.player_klawisze1:
-            keystate = pygame.key.get_pressed()
-            if keystate[pygame.K_LEFT]:
-                self.speedx = -8
-                self.direction = LEFT
-            if keystate[pygame.K_RIGHT]:
-                self.speedx = 8
-                self.direction = RIGHT
-            if keystate[pygame.K_UP]:
-                self.speedy = -8
-                self.direction = UP
-            if keystate[pygame.K_DOWN]:
-                self.speedy = 8
-                self.direction = DOWN
-            if keystate[pygame.K_SPACE]:
-                self.shoot()
-            self.rect.y += self.speedy
-            self.rect.x += self.speedx
-            if self.rect.right > WIDTH + 55:
-                self.rect.right = WIDTH + 55
-            if self.rect.left < 0:
-                self.rect.left = 0
-            if self.rect.bottom > 1000:
-                self.rect.bottom = 1000
-            if self.rect.top <= 0:
-                self.rect.top = 0
-        else:
-            keystate = pygame.key.get_pressed()
-            if keystate[pygame.K_a]:
-                self.speedx = -8
-                self.direction = LEFT
-            if keystate[pygame.K_d]:
-                self.speedx = 8
-                self.direction = RIGHT
-            if keystate[pygame.K_w]:
-                self.speedy = -8
-                self.direction = UP
-            if keystate[pygame.K_s]:
-                self.speedy = 8
-                self.direction = DOWN
-            if keystate[pygame.K_LSHIFT]:
-                self.shoot()
-            self.rect.y += self.speedy
-            self.rect.x += self.speedx
-            if self.rect.right > WIDTH + 55:
-                self.rect.right = WIDTH + 55
-            if self.rect.left < 0:
-                self.rect.left = 0
-            if self.rect.bottom > 1000:
-                self.rect.bottom = 1000
-            if self.rect.top <= 0:
-                self.rect.top = 0
+        if self.direction == LEFT:
+            self.speedx = -8
+        if self.direction == RIGHT:
+            self.speedx = 8
+        if self.direction == UP:
+            self.speedy = -8
+        if self.direction == DOWN:
+            self.speedy = 8
+
+        self.rect.y += self.speedy
+        self.rect.x += self.speedx
+        if self.rect.right > WIDTH:
+            self.rect.right = WIDTH
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.bottom > HEIGHT:
+            self.rect.bottom = HEIGHT
+        if self.rect.top <= 0:
+            self.rect.top = 0
 
     def shoot(self):
         now = pygame.time.get_ticks()
@@ -250,8 +242,6 @@ while running:
         death_explosion = Explosion(hit_player.rect.center, "lg")
         all_sprites.add(death_explosion)
         if len(hit_players) > 0:
-            PUNKTY =+ 1
-
-
+            PUNKTY = + 1
 
 pygame.quit()
