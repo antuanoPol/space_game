@@ -7,6 +7,7 @@ snd_dir = path.join(path.dirname(__file__), "Bajki_robotow_projekt_muzyka")
 WIDTH = 1900
 HEIGHT = 1000
 FPS = 60
+PUNKTY = 0
 
 LEFT = 'LEFT'
 RIGHT = 'RIGHT'
@@ -248,9 +249,9 @@ while running:
     for hit_player in hit_players:
         death_explosion = Explosion(hit_player.rect.center, "lg")
         all_sprites.add(death_explosion)
+        if len(hit_players) > 0:
+            PUNKTY =+ 1
 
-    if len(hit_players) > 0 and not death_explosionalive.():
-        print('jestem')
-        running = False
+
 
 pygame.quit()
