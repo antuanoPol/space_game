@@ -74,7 +74,7 @@ class Bullet(pygame.sprite.Sprite):
             self.rect = self.image.get_rect()
             self.rect.bottom = parent.rect.centery
             self.rect.centerx = parent.rect.centerx
-        if self.direction == UP:
+        if self.direction == UP or self.direction is None:
             self.rect.bottom = parent.rect.top - 20
         if self.direction == DOWN:
             self.rect.bottom = parent.rect.bottom + 60
@@ -86,7 +86,7 @@ class Bullet(pygame.sprite.Sprite):
     def update(self):
         if self.direction == LEFT:
             self.rect.x -= self.speed
-        if self.direction == UP:
+        if self.direction == UP or self.direction is None:
             self.rect.y -= self.speed
         if self.direction == DOWN:
             self.rect.y += self.speed
@@ -117,6 +117,12 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.setDirection()
         self.move()
+        if self.main_player:
+            if self.keystate[pygame.K_SPACE]:
+                self.shoot()
+        else:
+            if self.keystate[pygame.K_LSHIFT]:
+                self.shoot()
         self.direction = None
 
     def setDirection(self):
