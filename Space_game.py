@@ -1,9 +1,10 @@
 # Frozen Jam by tgfcoder <https://twitter.com/tgfcoder> licensed under CC-BY-3
 # Art from Kenney.nl
 
-import pygame
 import random
 from os import path
+
+import pygame
 
 img_dir = path.join(path.dirname(__file__), "img")
 snd_dir = path.join(path.dirname(__file__), "sound")
@@ -55,17 +56,19 @@ def draw_shield_bar(surf, x, y, pct):
     pygame.draw.rect(surf, GREEN, fill_rect)
     pygame.draw.rect(surf, WHITE, outline_rect, 2)
 
+
 def draw_lives(surf, x, y, lives, img):
-    for i in range (lives):
+    for i in range(lives):
         img_rect = img.get_rect()
         img_rect.x = x + 30 * i
         img_rect.y = y
         surf.blit(img, img_rect)
 
+
 def show_go_screen():
-    draw_text(screen, "Space_game", 64, WIDTH / 2, HEIGHT / 4)
+    draw_text(screen, "Space game", 64, WIDTH / 2, HEIGHT / 4)
     draw_text(screen, "ARROWS KEY move, SPACE KEY fire", 22, WIDTH / 2, HEIGHT / 2)
-    draw_text(screen, "Press a key to begin", 18, WIDTH/2, HEIGHT * 3 /4)
+    draw_text(screen, "Press a key to begin", 18, WIDTH / 2, HEIGHT * 3 / 4)
     pygame.display.flip()
     waiting = True
     while waiting:
@@ -99,17 +102,15 @@ class Player(pygame.sprite.Sprite):
         self.power_time = pygame.time.get_ticks()
 
     def update(self):
-        #czas dla powerup
+        # czas dla powerup
         if self.power >= 2 and pygame.time.get_ticks() - self.power_time > POWERUP_TIME:
             self.power -= 1
             self.power_time = pygame.time.get_ticks()
-        #unhide if hidden
+        # unhide if hidden
 
         if self.hidden and pygame.time.get_ticks() - self.hidden_timer > 1000:
             self.hidden = False
             self.rect.center = (WIDTH / 2, HEIGHT - 10)
-
-
 
         self.speedy = 0
         self.speedx = 0
@@ -160,7 +161,7 @@ class Player(pygame.sprite.Sprite):
                 self.last_shoot = now
 
     def hide(self):
-        #hide the player
+        # hide the player
         self.hidden = True
         self.hidden_timer = pygame.time.get_ticks()
         self.rect.center = (WIDTH / 2, HEIGHT + 200)
@@ -220,6 +221,7 @@ class Bullet(pygame.sprite.Sprite):
         if self.rect.bottom < 0:
             self.kill()
 
+
 class Power(pygame.sprite.Sprite):
     def __init__(self, center):
         pygame.sprite.Sprite.__init__(self)
@@ -234,6 +236,7 @@ class Power(pygame.sprite.Sprite):
         self.rect.y += self.speedy
         if self.rect.bottom < 0:
             self.kill()
+
 
 class Explosion(pygame.sprite.Sprite):
     def __init__(self, center, size):
@@ -346,7 +349,7 @@ while running:
         random.choice(expl_sounds).play()
         expl = Explosion(hit.rect.center, "lg")
         all_sprites.add(expl)
-        if random.random()> 0.9:
+        if random.random() > 0.9:
             power = Power(hit.rect.center)
             all_sprites.add(power)
             powerups.add(power)
@@ -356,8 +359,8 @@ while running:
 
     for hit in hits:
         player.shield -= hit.radius * 2
-        #random.choice(expl_sounds).play()
-        expl = Explosion(hit.rect.center, "sm")
+        # random.choice(expl_sounds).play()
+        expl = Explosion(hit.rect.center, "lg")
         all_sprites.add(expl)
         newmob()
         if player.shield <= 0:
@@ -365,28 +368,25 @@ while running:
             death_explosion = Explosion(player.rect.center, "player")
             all_sprites.add(death_explosion)
             player.hide()
-            player.lives -=1
+            player.lives -= 1
             player.shield = 100
 
-    #sprawdzamy czy gracz dotkął powerup
+    # sprawdzamy czy gracz dotkął powerup
 
     hits = pygame.sprite.spritecollide(player, powerups, True)
     for hit in hits:
         if hit.type == "shield":
             shield_sound.play()
             player.shield += random.randrange(10, 30)
-            if player.shield>= 100:
+            if player.shield >= 100:
                 player.shield = 100
         if hit.type == "gun":
             power_sound.play()
             player.powerup()
 
-
-
     # if the player died and the explosion has finished playing
     if player.lives == 0 and not death_explosion.alive():
         game_over = True
-
 
     # Draw / render
     screen.fill(BLACK)
